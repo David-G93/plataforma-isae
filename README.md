@@ -34,6 +34,15 @@ composer run dev
 http://127.0.0.1:8000
 ```
 
+### Git Bash
+
+Si usas Git Bash y el comando `composer` no existe, usa el lanzador incluido:
+
+```bash
+bash run.sh db:start
+bash run.sh dev
+```
+
 ## Comandos útiles
 
 ```powershell

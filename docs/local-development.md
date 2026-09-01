@@ -30,6 +30,13 @@ composer run db:start
 composer run dev
 ```
 
+En Git Bash, si `composer` no esta disponible, ejecuta los mismos comandos con:
+
+```bash
+bash run.sh db:start
+bash run.sh dev
+```
+
 3. Si necesitás recompilar assets:
 
 ```powershell
