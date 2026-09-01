@@ -10,6 +10,10 @@ Base técnica de `Plataforma ISAE` construida con Laravel, React, TypeScript, In
 - npm 11
 - MySQL Community 8.4
 
+Los comandos de Composer y npm seleccionan el PHP oficial ubicado en
+`%LOCALAPPDATA%\Programs\PHP\php.exe`. Para indicar otra ubicacion, defini
+`ISAE_PHP_BINARY` con la ruta absoluta al ejecutable.
+
 ## Arranque rápido
 
 1. Iniciar la base local:
@@ -35,8 +39,8 @@ http://127.0.0.1:8000
 ```powershell
 composer run db:status
 composer run db:stop
-php artisan migrate
-php artisan test
+composer run migrate
+composer run test:feature
 npm run build
 ```
 

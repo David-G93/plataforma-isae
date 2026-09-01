@@ -39,8 +39,8 @@ npm run build
 4. Si necesitás ejecutar migraciones o tests:
 
 ```powershell
-php artisan migrate
-php artisan test
+composer run migrate
+composer run test:feature
 ```
 
 ## Scripts locales
@@ -51,6 +51,7 @@ php artisan test
 
 ## Nota técnica
 
-El proyecto quedó preparado para usar un PHP oficial de Windows instalado en `%LOCALAPPDATA%\Programs\PHP`, con `composer` y `laravel` envueltos sobre ese runtime. Las instalaciones previas de `Herd Lite` siguen presentes en la máquina, pero dejaron de ser la referencia principal para este proyecto.
-
-Si una terminal ya estaba abierta antes de este cambio, puede seguir resolviendo el `php` viejo hasta abrir una nueva sesión.
+Los comandos habituales del proyecto seleccionan el PHP oficial de Windows en
+`%LOCALAPPDATA%\Programs\PHP\php.exe`, incluso si una terminal todavía apunta
+a otra instalación. Para usar una ubicación distinta, definí `ISAE_PHP_BINARY`
+con la ruta absoluta al ejecutable.

@@ -32,7 +32,7 @@ export default function ResetPassword({ token, email, passwordRules }: Props) {
                                 type="email"
                                 name="email"
                                 autoComplete="email"
-                                value={email}
+                                value={email ?? ''}
                                 className="mt-1 block w-full"
                                 readOnly
                             />

@@ -3,8 +3,10 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "build": "vp build",
-        "build:ssr": "vp build && vp build --ssr",
+        "build": "php scripts/dev/runtime.php npm run build:assets",
+        "build:assets": "vp build",
+        "build:ssr": "php scripts/dev/runtime.php npm run build:ssr:assets",
+        "build:ssr:assets": "vp build && vp build --ssr",
         "dev": "vp dev",
         "check": "vp check",
         "check:fix": "vp check --fix",
