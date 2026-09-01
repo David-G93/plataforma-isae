@@ -52,3 +52,5 @@ php artisan test
 ## Nota técnica
 
 El proyecto quedó preparado para usar un PHP oficial de Windows instalado en `%LOCALAPPDATA%\Programs\PHP`, con `composer` y `laravel` envueltos sobre ese runtime. Las instalaciones previas de `Herd Lite` siguen presentes en la máquina, pero dejaron de ser la referencia principal para este proyecto.
+
+Si una terminal ya estaba abierta antes de este cambio, puede seguir resolviendo el `php` viejo hasta abrir una nueva sesión.

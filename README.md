@@ -41,3 +41,5 @@ npm run build
 ```
 
 Más detalles en [docs/local-development.md](docs/local-development.md).
+
+Si una terminal ya abierta sigue resolviendo el `php` anterior, abrí una nueva sesión de PowerShell o CMD para que tome el PHP oficial configurado para este proyecto.
