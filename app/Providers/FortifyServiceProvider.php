@@ -13,6 +13,8 @@ use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 
 class FortifyServiceProvider extends ServiceProvider
 {
@@ -27,12 +29,13 @@ class FortifyServiceProvider extends ServiceProvider
     /**
      * Bootstrap any application services.
      */
-    public function boot(): void
-    {
-        $this->configureActions();
-        $this->configureViews();
-        $this->configureRateLimiting();
-    }
+public function boot(): void
+{
+    $this->configureActions();
+    $this->configureAuthentication();
+    $this->configureViews();
+    $this->configureRateLimiting();
+}
 
     /**
      * Configure Fortify actions.
@@ -97,4 +100,31 @@ class FortifyServiceProvider extends ServiceProvider
             );
         });
     }
+
+    private function configureAuthentication(): void
+{
+    Fortify::authenticateUsing(function (Request $request): ?User {
+        $dni = trim((string) $request->input('dni'));
+
+        $user = User::query()
+            ->where('is_active', true)
+            ->whereHas('person', function ($query) use ($dni): void {
+                $query->where('dni', $dni);
+            })
+            ->first();
+
+        if (! $user) {
+            return null;
+        }
+
+        if (! Hash::check(
+            (string) $request->input('password'),
+            $user->password,
+        )) {
+            return null;
+        }
+
+        return $user;
+    });
+}
 }
