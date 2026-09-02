@@ -27,3 +27,7 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+
+# Archivos temporales de revisión
+isae-codigo-review.tar.gz
+proyecto-archivos.txt
