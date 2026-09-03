@@ -10,11 +10,7 @@ class UpdatePersonInstitutionalAccessRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->hasAnyRole([
-            'admin',
-            'gestion',
-            'director',
-        ]) ?? false;
+        return $this->user()?->can('people.manage') ?? false;
     }
 
     public function rules(): array
@@ -28,7 +24,9 @@ class UpdatePersonInstitutionalAccessRequest extends FormRequest
             'nullable',
             'email',
             'max:255',
-            Rule::unique('users', 'email')->ignore($user?->id),
+
+            Rule::unique('users', 'email')
+                ->ignore($user?->id),
         ];
 
         if ($user || $this->boolean('is_active')) {
@@ -76,12 +74,20 @@ class UpdatePersonInstitutionalAccessRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'email.required' => 'Ingresá un email para la cuenta de acceso.',
-            'email.email' => 'Ingresá un email válido.',
-            'email.unique' => 'Ese email ya pertenece a otro usuario.',
+            'email.required' =>
+                'Ingresá un email para la cuenta de acceso.',
 
-            'password.required' => 'Ingresá una contraseña inicial.',
-            'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
+            'email.email' =>
+                'Ingresá un email válido.',
+
+            'email.unique' =>
+                'Ese email ya pertenece a otro usuario.',
+
+            'password.required' =>
+                'Ingresá una contraseña inicial.',
+
+            'password.min' =>
+                'La contraseña debe tener al menos 8 caracteres.',
         ];
     }
 }

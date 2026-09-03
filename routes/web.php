@@ -14,21 +14,66 @@ Route::get('/', function () {
 
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+})
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
 Route::middleware('auth')->group(function () {
-    Route::put(
-        '/people/{person}/institutional-access',
-        [PersonController::class, 'updateInstitutionalAccess'],
-    )->name('people.institutional-access.update');
+    /*
+    |--------------------------------------------------------------------------
+    | Personas - administración
+    |--------------------------------------------------------------------------
+    |
+    | Las rutas estáticas como /people/create deben declararse antes de
+    | /people/{person}, para que "create" no sea interpretado como un ID.
+    |
+    */
 
-    Route::put(
-        '/guardian-profiles/{guardianProfile}/students',
-        [GuardianStudentController::class, 'update'],
-    )->name('guardian-students.update');
+    Route::middleware('permission:people.manage')->group(function () {
+        Route::get('/people/create', [PersonController::class, 'create'])
+            ->name('people.create');
 
-    Route::resource('people', PersonController::class)
-        ->except('destroy');
+        Route::post('/people', [PersonController::class, 'store'])
+            ->name('people.store');
+
+        Route::get('/people/{person}/edit', [PersonController::class, 'edit'])
+            ->name('people.edit');
+
+        Route::put('/people/{person}', [PersonController::class, 'update'])
+            ->name('people.update');
+
+        Route::patch('/people/{person}', [PersonController::class, 'update']);
+
+        Route::put(
+            '/people/{person}/institutional-access',
+            [PersonController::class, 'updateInstitutionalAccess'],
+        )->name('people.institutional-access.update');
+
+        Route::put(
+            '/guardian-profiles/{guardianProfile}/students',
+            [GuardianStudentController::class, 'update'],
+        )->name('guardian-students.update');
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Personas - lectura
+    |--------------------------------------------------------------------------
+    */
+
+    Route::middleware('permission:people.view')->group(function () {
+        Route::get('/people', [PersonController::class, 'index'])
+            ->name('people.index');
+
+        Route::get('/people/{person}', [PersonController::class, 'show'])
+            ->name('people.show');
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Perfil personal
+    |--------------------------------------------------------------------------
+    */
 
     Route::get('/profile', [ProfileController::class, 'edit'])
         ->name('profile.edit');

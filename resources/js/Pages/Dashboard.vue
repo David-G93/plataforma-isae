@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, usePage } from '@inertiajs/vue3';
+import { Head, Link, usePage } from '@inertiajs/vue3';
 import {
     ArrowRight,
+    BarChart3,
     BookOpen,
     CalendarDays,
     ClipboardCheck,
+    GraduationCap,
     MessageSquare,
     Users,
 } from '@lucide/vue';
@@ -27,10 +29,17 @@ const roles = computed<string[]>(() => {
     return user.value?.roles ?? [];
 });
 
+const permissions = computed<string[]>(() => {
+    return user.value?.permissions ?? [];
+});
+
 const roleLabels: Record<string, string> = {
     admin: 'Administrador',
     gestion: 'Gestión',
+    rector: 'Rector',
     director: 'Director',
+    vicedirector: 'Vicedirector',
+    secretario: 'Secretario',
     preceptor: 'Preceptor',
     docente: 'Docente',
     alumno: 'Estudiante',
@@ -43,41 +52,95 @@ const roleNames = computed(() => {
         .join(' · ');
 });
 
-const modules = [
+const can = (permission: string) => {
+    return permissions.value.includes(permission);
+};
+
+const allModules = [
     {
         title: 'Personas',
-        description: 'Estudiantes, docentes y responsables.',
+        description:
+            'Estudiantes, docentes, responsables y usuarios institucionales.',
         icon: Users,
+        permission: 'people.view',
+        href: route('people.index'),
+        available: true,
     },
     {
         title: 'Académico',
-        description: 'Cursos, divisiones, materias y ciclos.',
+        description:
+            'Ciclos lectivos, cursos, divisiones, materias y matrículas.',
         icon: BookOpen,
+        permission: 'academic.view',
+        href: '#',
+        available: false,
     },
     {
         title: 'Asistencia',
-        description: 'Registro y seguimiento institucional.',
+        description:
+            'Registro y seguimiento de asistencia institucional.',
         icon: ClipboardCheck,
+        permission: 'attendance.view',
+        href: '#',
+        available: false,
+    },
+    {
+        title: 'Calificaciones',
+        description:
+            'Evaluaciones, períodos, trayectorias y resultados académicos.',
+        icon: GraduationCap,
+        permission: 'grades.view',
+        href: '#',
+        available: false,
     },
     {
         title: 'Calendario',
-        description: 'Eventos y fechas importantes.',
+        description:
+            'Eventos institucionales, fechas y actividades importantes.',
         icon: CalendarDays,
+        permission: 'calendar.view',
+        href: '#',
+        available: false,
+    },
+    {
+        title: 'Comunicaciones',
+        description:
+            'Avisos, novedades y comunicación con la comunidad educativa.',
+        icon: MessageSquare,
+        permission: 'communications.view',
+        href: '#',
+        available: false,
+    },
+    {
+        title: 'Reportes',
+        description:
+            'Información consolidada para seguimiento y toma de decisiones.',
+        icon: BarChart3,
+        permission: 'reports.view',
+        href: '#',
+        available: false,
     },
 ];
+
+const modules = computed(() => {
+    return allModules.filter((module) => can(module.permission));
+});
 
 const recentItems = [
     {
         title: 'Identidad institucional configurada',
-        description: 'Personas, usuarios y perfiles ya están disponibles.',
+        description:
+            'Personas, perfiles institucionales y usuarios están disponibles.',
     },
     {
-        title: 'Acceso por DNI habilitado',
-        description: 'El ingreso institucional ya utiliza DNI y contraseña.',
+        title: 'Responsables y estudiantes vinculados',
+        description:
+            'Los vínculos familiares ya pueden administrarse desde Personas.',
     },
     {
-        title: 'Roles institucionales configurados',
-        description: 'Los perfiles de acceso están listos para los próximos módulos.',
+        title: 'Roles y permisos configurados',
+        description:
+            'Cada usuario puede recibir acceso específico según su función.',
     },
 ];
 </script>
@@ -113,9 +176,9 @@ const recentItems = [
                     <p
                         class="mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base"
                     >
-                        Este es tu espacio dentro de Plataforma ISAE. Desde acá
-                        vas a poder acceder a las herramientas y la información
-                        que correspondan a tu rol institucional.
+                        Este es tu espacio dentro de Plataforma ISAE. Los
+                        módulos disponibles dependen de tus funciones y
+                        permisos dentro de la institución.
                     </p>
 
                     <div class="mt-7 flex flex-wrap gap-3">
@@ -130,29 +193,45 @@ const recentItems = [
                 </div>
             </section>
 
-            <!-- resumen -->
+            <!-- módulos -->
             <section>
-                <div class="mb-5 flex items-end justify-between gap-4">
+                <div
+                    class="mb-5 flex items-end justify-between gap-4"
+                >
                     <div>
                         <p class="text-sm font-semibold text-cyan-700">
-                            Accesos principales
+                            Tus accesos
                         </p>
 
-                        <h2 class="mt-1 text-2xl font-bold tracking-tight text-slate-950">
+                        <h2
+                            class="mt-1 text-2xl font-bold tracking-tight text-slate-950"
+                        >
                             Módulos de la plataforma
                         </h2>
                     </div>
 
-                    <span class="hidden text-sm text-slate-400 sm:block">
-                        Se habilitarán progresivamente
+                    <span
+                        class="hidden text-sm text-slate-400 sm:block"
+                    >
+                        Según tus permisos institucionales
                     </span>
                 </div>
 
-                <div class="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-                    <article
+                <div
+                    v-if="modules.length"
+                    class="grid gap-5 sm:grid-cols-2 xl:grid-cols-4"
+                >
+                    <component
+                        :is="module.available ? Link : 'article'"
                         v-for="module in modules"
                         :key="module.title"
-                        class="group rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                        :href="module.available ? module.href : undefined"
+                        :class="[
+                            'group rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition',
+                            module.available
+                                ? 'cursor-pointer hover:-translate-y-0.5 hover:border-cyan-200 hover:shadow-md'
+                                : '',
+                        ]"
                     >
                         <div
                             class="flex h-11 w-11 items-center justify-center rounded-xl bg-cyan-50 text-cyan-700"
@@ -163,35 +242,76 @@ const recentItems = [
                             />
                         </div>
 
-                        <h3 class="mt-5 text-lg font-bold text-slate-950">
+                        <h3
+                            class="mt-5 text-lg font-bold text-slate-950"
+                        >
                             {{ module.title }}
                         </h3>
 
-                        <p class="mt-2 min-h-12 text-sm leading-6 text-slate-500">
+                        <p
+                            class="mt-2 min-h-12 text-sm leading-6 text-slate-500"
+                        >
                             {{ module.description }}
                         </p>
 
-                        <div class="mt-5 flex items-center justify-between">
-                            <span class="text-xs font-medium text-slate-400">
-                                Próximamente
+                        <div
+                            class="mt-5 flex items-center justify-between"
+                        >
+                            <span
+                                :class="[
+                                    'text-xs font-medium',
+                                    module.available
+                                        ? 'text-cyan-700'
+                                        : 'text-slate-400',
+                                ]"
+                            >
+                                {{
+                                    module.available
+                                        ? 'Abrir módulo'
+                                        : 'Próximamente'
+                                }}
                             </span>
 
                             <ArrowRight
-                                class="h-4 w-4 text-slate-300 transition group-hover:translate-x-1 group-hover:text-cyan-600"
+                                :class="[
+                                    'h-4 w-4 transition',
+                                    module.available
+                                        ? 'text-cyan-600 group-hover:translate-x-1'
+                                        : 'text-slate-300',
+                                ]"
                             />
                         </div>
-                    </article>
+                    </component>
+                </div>
+
+                <div
+                    v-else
+                    class="rounded-2xl border border-dashed border-slate-200 bg-white px-6 py-12 text-center"
+                >
+                    <p class="font-semibold text-slate-700">
+                        No tenés módulos asignados
+                    </p>
+
+                    <p class="mt-2 text-sm text-slate-500">
+                        Un administrador deberá revisar tus permisos
+                        institucionales.
+                    </p>
                 </div>
             </section>
 
             <!-- inferior -->
-            <section class="grid gap-6 lg:grid-cols-[1.35fr_.65fr]">
+            <section
+                class="grid gap-6 lg:grid-cols-[1.35fr_.65fr]"
+            >
+                <!-- estado -->
                 <div
                     class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
                 >
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-sm font-semibold text-slate-950">
+                            <p
+                                class="text-sm font-semibold text-slate-950"
+                            >
                                 Estado de la plataforma
                             </p>
 
@@ -218,11 +338,15 @@ const recentItems = [
                             />
 
                             <div>
-                                <p class="text-sm font-semibold text-slate-900">
+                                <p
+                                    class="text-sm font-semibold text-slate-900"
+                                >
                                     {{ item.title }}
                                 </p>
 
-                                <p class="mt-1 text-sm leading-6 text-slate-500">
+                                <p
+                                    class="mt-1 text-sm leading-6 text-slate-500"
+                                >
                                     {{ item.description }}
                                 </p>
                             </div>
@@ -230,30 +354,49 @@ const recentItems = [
                     </div>
                 </div>
 
+                <!-- usuario -->
                 <div
                     class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
                 >
                     <div
                         class="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-700"
                     >
-                        <MessageSquare class="h-5 w-5" />
+                        <Users class="h-5 w-5" />
                     </div>
 
-                    <h3 class="mt-5 text-lg font-bold text-slate-950">
-                        Comunicaciones
+                    <h3
+                        class="mt-5 text-lg font-bold text-slate-950"
+                    >
+                        Perfil institucional
                     </h3>
 
-                    <p class="mt-2 text-sm leading-6 text-slate-500">
-                        Cuando habilitemos el módulo, acá vas a encontrar
-                        novedades, avisos y mensajes institucionales.
+                    <p
+                        class="mt-2 text-sm leading-6 text-slate-500"
+                    >
+                        Tu acceso se adapta automáticamente a los roles y
+                        permisos que tengas asignados.
                     </p>
 
                     <div
-                        class="mt-6 rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-5 text-center"
+                        class="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-4"
                     >
-                        <p class="text-sm font-medium text-slate-400">
-                            Sin novedades por ahora
+                        <p
+                            class="text-xs font-semibold uppercase tracking-wide text-slate-400"
+                        >
+                            Roles actuales
                         </p>
+
+                        <div
+                            class="mt-3 flex flex-wrap gap-2"
+                        >
+                            <span
+                                v-for="role in roles"
+                                :key="role"
+                                class="rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm"
+                            >
+                                {{ roleLabels[role] ?? role }}
+                            </span>
+                        </div>
                     </div>
                 </div>
             </section>

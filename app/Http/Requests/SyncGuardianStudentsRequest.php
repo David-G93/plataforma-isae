@@ -8,11 +8,7 @@ class SyncGuardianStudentsRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->hasAnyRole([
-            'admin',
-            'gestion',
-            'director',
-        ]) ?? false;
+        return $this->user()?->can('people.manage') ?? false;
     }
 
     public function rules(): array

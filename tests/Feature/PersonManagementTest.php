@@ -242,3 +242,67 @@ test('student can have several guardians', function () {
     expect($student->fresh()->guardians)
         ->toHaveCount(2);
 });
+
+test('user without people view permission cannot access people', function () {
+    $person = Person::factory()->create();
+
+    $user = User::factory()->create([
+        'person_id' => $person->id,
+        'is_active' => true,
+    ]);
+
+    $user->assignRole('docente');
+
+    $this
+        ->actingAs($user)
+        ->get(route('people.index'))
+        ->assertForbidden();
+});
+
+test('user with people view permission can access people', function () {
+    $person = Person::factory()->create();
+
+    $user = User::factory()->create([
+        'person_id' => $person->id,
+        'is_active' => true,
+    ]);
+
+    $user->assignRole('preceptor');
+
+    $this
+        ->actingAs($user)
+        ->get(route('people.index'))
+        ->assertOk();
+});
+
+test('user with people view but without manage cannot create people', function () {
+    $person = Person::factory()->create();
+
+    $user = User::factory()->create([
+        'person_id' => $person->id,
+        'is_active' => true,
+    ]);
+
+    $user->assignRole('preceptor');
+
+    $this
+        ->actingAs($user)
+        ->get(route('people.create'))
+        ->assertForbidden();
+});
+
+test('secretary can manage people', function () {
+    $person = Person::factory()->create();
+
+    $user = User::factory()->create([
+        'person_id' => $person->id,
+        'is_active' => true,
+    ]);
+
+    $user->assignRole('secretario');
+
+    $this
+        ->actingAs($user)
+        ->get(route('people.create'))
+        ->assertOk();
+});

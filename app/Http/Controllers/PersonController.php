@@ -21,7 +21,7 @@ class PersonController extends Controller
 {
     public function index(Request $request): Response
     {
-        $this->ensureCanManagePeople($request);
+        $this->ensureCanViewPeople($request);
 
         $search = trim((string) $request->input('search', ''));
 
@@ -96,16 +96,23 @@ class PersonController extends Controller
 
     public function store(StorePersonRequest $request): RedirectResponse
     {
-        $person = Person::create($request->validated());
+        $person = Person::create(
+            $request->validated(),
+        );
 
         return redirect()
             ->route('people.show', $person)
-            ->with('success', 'Persona creada correctamente.');
+            ->with(
+                'success',
+                'Persona creada correctamente.',
+            );
     }
 
-    public function show(Request $request, Person $person): Response
-    {
-        $this->ensureCanManagePeople($request);
+    public function show(
+        Request $request,
+        Person $person,
+    ): Response {
+        $this->ensureCanViewPeople($request);
 
         $person->load([
             'studentProfile.guardians.person',
@@ -119,7 +126,10 @@ class PersonController extends Controller
             ->whereHas('person')
             ->orderBy(
                 Person::select('last_name')
-                    ->whereColumn('people.id', 'student_profiles.person_id'),
+                    ->whereColumn(
+                        'people.id',
+                        'student_profiles.person_id',
+                    ),
             )
             ->get()
             ->map(fn (StudentProfile $student) => [
@@ -137,7 +147,9 @@ class PersonController extends Controller
                 'first_name' => $person->first_name,
                 'last_name' => $person->last_name,
                 'full_name' => $person->full_name,
-                'birth_date' => $person->birth_date?->format('Y-m-d'),
+                'birth_date' => $person
+                    ->birth_date
+                    ?->format('Y-m-d'),
                 'email' => $person->email,
                 'phone' => $person->phone,
                 'address' => $person->address,
@@ -151,17 +163,30 @@ class PersonController extends Controller
                 'student_profile' => $person->studentProfile ? [
                     'id' => $person->studentProfile->id,
 
-                    'guardians' => $person->studentProfile
+                    'guardians' => $person
+                        ->studentProfile
                         ->guardians
                         ->map(fn (GuardianProfile $guardian) => [
                             'id' => $guardian->id,
                             'person_id' => $guardian->person_id,
-                            'full_name' => $guardian->person->full_name,
-                            'dni' => $guardian->person->dni,
-                            'relationship' => $guardian->pivot->relationship,
-                            'is_primary' => (bool) $guardian->pivot->is_primary,
-                            'authorized_pickup' => (bool) $guardian->pivot->authorized_pickup,
-                            'receives_communications' => (bool) $guardian->pivot->receives_communications,
+                            'full_name' => $guardian
+                                ->person
+                                ->full_name,
+                            'dni' => $guardian
+                                ->person
+                                ->dni,
+                            'relationship' => $guardian
+                                ->pivot
+                                ->relationship,
+                            'is_primary' => (bool) $guardian
+                                ->pivot
+                                ->is_primary,
+                            'authorized_pickup' => (bool) $guardian
+                                ->pivot
+                                ->authorized_pickup,
+                            'receives_communications' => (bool) $guardian
+                                ->pivot
+                                ->receives_communications,
                         ])
                         ->values(),
                 ] : null,
@@ -169,17 +194,30 @@ class PersonController extends Controller
                 'guardian_profile' => $person->guardianProfile ? [
                     'id' => $person->guardianProfile->id,
 
-                    'students' => $person->guardianProfile
+                    'students' => $person
+                        ->guardianProfile
                         ->students
                         ->map(fn (StudentProfile $student) => [
                             'id' => $student->id,
                             'person_id' => $student->person_id,
-                            'full_name' => $student->person->full_name,
-                            'dni' => $student->person->dni,
-                            'relationship' => $student->pivot->relationship,
-                            'is_primary' => (bool) $student->pivot->is_primary,
-                            'authorized_pickup' => (bool) $student->pivot->authorized_pickup,
-                            'receives_communications' => (bool) $student->pivot->receives_communications,
+                            'full_name' => $student
+                                ->person
+                                ->full_name,
+                            'dni' => $student
+                                ->person
+                                ->dni,
+                            'relationship' => $student
+                                ->pivot
+                                ->relationship,
+                            'is_primary' => (bool) $student
+                                ->pivot
+                                ->is_primary,
+                            'authorized_pickup' => (bool) $student
+                                ->pivot
+                                ->authorized_pickup,
+                            'receives_communications' => (bool) $student
+                                ->pivot
+                                ->receives_communications,
                         ])
                         ->values(),
                 ] : null,
@@ -189,7 +227,9 @@ class PersonController extends Controller
                     'email' => $person->user->email,
                     'is_active' => $person->user->is_active,
 
-                    'roles' => $person->user->roles
+                    'roles' => $person
+                        ->user
+                        ->roles
                         ->pluck('name')
                         ->values()
                         ->all(),
@@ -200,8 +240,10 @@ class PersonController extends Controller
         ]);
     }
 
-    public function edit(Request $request, Person $person): Response
-    {
+    public function edit(
+        Request $request,
+        Person $person,
+    ): Response {
         $this->ensureCanManagePeople($request);
 
         return Inertia::render('People/Edit', [
@@ -210,7 +252,9 @@ class PersonController extends Controller
                 'dni' => $person->dni,
                 'first_name' => $person->first_name,
                 'last_name' => $person->last_name,
-                'birth_date' => $person->birth_date?->format('Y-m-d'),
+                'birth_date' => $person
+                    ->birth_date
+                    ?->format('Y-m-d'),
                 'email' => $person->email,
                 'phone' => $person->phone,
                 'address' => $person->address,
@@ -222,7 +266,9 @@ class PersonController extends Controller
         UpdatePersonRequest $request,
         Person $person,
     ): RedirectResponse {
-        $person->update($request->validated());
+        $person->update(
+            $request->validated(),
+        );
 
         if ($person->user) {
             $person->user->update([
@@ -232,7 +278,10 @@ class PersonController extends Controller
 
         return redirect()
             ->route('people.show', $person)
-            ->with('success', 'Persona actualizada correctamente.');
+            ->with(
+                'success',
+                'Persona actualizada correctamente.',
+            );
     }
 
     public function updateInstitutionalAccess(
@@ -271,7 +320,9 @@ class PersonController extends Controller
                     'person_id' => $person->id,
                     'name' => $person->full_name,
                     'email' => $data['email'],
-                    'password' => Hash::make($data['password']),
+                    'password' => Hash::make(
+                        $data['password'],
+                    ),
                     'is_active' => true,
                 ]);
             } else {
@@ -282,7 +333,9 @@ class PersonController extends Controller
                 ];
 
                 if (! empty($data['password'])) {
-                    $update['password'] = Hash::make($data['password']);
+                    $update['password'] = Hash::make(
+                        $data['password'],
+                    );
                 }
 
                 $user->update($update);
@@ -352,18 +405,27 @@ class PersonController extends Controller
          * esta eliminación deberá reemplazarse por un estado activo/inactivo.
          */
         $profileClass::query()
-            ->where('person_id', $person->id)
+            ->where(
+                'person_id',
+                $person->id,
+            )
             ->delete();
     }
 
-    private function ensureCanManagePeople(Request $request): void
-    {
+    private function ensureCanViewPeople(
+        Request $request,
+    ): void {
         abort_unless(
-            $request->user()?->hasAnyRole([
-                'admin',
-                'gestion',
-                'director',
-            ]),
+            $request->user()?->can('people.view'),
+            403,
+        );
+    }
+
+    private function ensureCanManagePeople(
+        Request $request,
+    ): void {
+        abort_unless(
+            $request->user()?->can('people.manage'),
             403,
         );
     }
