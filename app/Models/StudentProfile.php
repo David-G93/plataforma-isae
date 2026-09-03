@@ -1,0 +1,23 @@
+<?php
+
+namespace App\Models;
+
+use Database\Factories\StudentProfileFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class StudentProfile extends Model
+{
+    /** @use HasFactory<StudentProfileFactory> */
+    use HasFactory;
+
+    protected $fillable = [
+        'person_id',
+    ];
+
+    public function person(): BelongsTo
+    {
+        return $this->belongsTo(Person::class);
+    }
+}
