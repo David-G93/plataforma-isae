@@ -71,11 +71,11 @@ const menuItems = [
         href: route('dashboard'),
         icon: Home,
     },
-    {
-        label: 'Personas',
-        href: '#',
-        icon: Users,
-    },
+{
+    label: 'Personas',
+    href: route('people.index'),
+    icon: Users,
+},
     {
         label: 'Académico',
         href: '#',
