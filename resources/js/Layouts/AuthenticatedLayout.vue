@@ -1,196 +1,324 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import ApplicationLogo from '@/Components/ApplicationLogo.vue';
-import Dropdown from '@/Components/Dropdown.vue';
-import DropdownLink from '@/Components/DropdownLink.vue';
-import NavLink from '@/Components/NavLink.vue';
-import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
-import { Link } from '@inertiajs/vue3';
+import { Link, router, usePage } from '@inertiajs/vue3';
+import {
+    Bell,
+    BookOpen,
+    CalendarDays,
+    ChevronDown,
+    ClipboardCheck,
+    Home,
+    LogOut,
+    Menu,
+    MessageSquare,
+    Settings,
+    Users,
+    X,
+} from '@lucide/vue';
+import { computed, ref } from 'vue';
 
-const showingNavigationDropdown = ref(false);
+defineProps<{
+    header?: string;
+}>();
+
+const page = usePage();
+
+const sidebarOpen = ref(false);
+const userMenuOpen = ref(false);
+
+const user = computed(() => page.props.auth?.user as any);
+
+const fullName = computed(() => {
+    return user.value?.person?.full_name ?? user.value?.name ?? 'Usuario';
+});
+
+const roles = computed<string[]>(() => {
+    return user.value?.roles ?? [];
+});
+
+const primaryRole = computed(() => {
+    const roleLabels: Record<string, string> = {
+        admin: 'Administrador',
+        gestion: 'Gestión',
+        director: 'Director',
+        preceptor: 'Preceptor',
+        docente: 'Docente',
+        alumno: 'Estudiante',
+        responsable: 'Responsable',
+    };
+
+    return roleLabels[roles.value[0]] ?? 'Usuario';
+});
+
+const initials = computed(() => {
+    const firstName = user.value?.person?.first_name ?? '';
+    const lastName = user.value?.person?.last_name ?? '';
+
+    if (firstName || lastName) {
+        return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+    }
+
+    return fullName.value
+        .split(' ')
+        .slice(0, 2)
+        .map((part: string) => part.charAt(0))
+        .join('')
+        .toUpperCase();
+});
+
+const menuItems = [
+    {
+        label: 'Inicio',
+        href: route('dashboard'),
+        icon: Home,
+    },
+    {
+        label: 'Personas',
+        href: '#',
+        icon: Users,
+    },
+    {
+        label: 'Académico',
+        href: '#',
+        icon: BookOpen,
+    },
+    {
+        label: 'Asistencia',
+        href: '#',
+        icon: ClipboardCheck,
+    },
+    {
+        label: 'Calendario',
+        href: '#',
+        icon: CalendarDays,
+    },
+    {
+        label: 'Comunicaciones',
+        href: '#',
+        icon: MessageSquare,
+    },
+];
+
+const logout = () => {
+    router.post(route('logout'));
+};
+
+const isCurrent = (href: string) => {
+    if (href === '#') {
+        return false;
+    }
+
+    return window.location.pathname === new URL(href, window.location.origin).pathname;
+};
 </script>
 
 <template>
-    <div>
-        <div class="min-h-screen bg-gray-100">
-            <nav
-                class="border-b border-gray-100 bg-white"
+    <div class="min-h-screen bg-slate-100">
+        <!-- overlay mobile -->
+        <div
+            v-if="sidebarOpen"
+            class="fixed inset-0 z-40 bg-slate-950/50 backdrop-blur-sm lg:hidden"
+            @click="sidebarOpen = false"
+        />
+
+        <!-- sidebar -->
+        <aside
+            :class="[
+                'fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-[#071a35] text-white transition-transform duration-300 lg:translate-x-0',
+                sidebarOpen ? 'translate-x-0' : '-translate-x-full',
+            ]"
+        >
+            <div class="flex h-20 items-center justify-between border-b border-white/10 px-6">
+                <Link
+                    :href="route('dashboard')"
+                    class="flex items-center gap-3"
+                >
+                    <div
+                        class="flex h-11 w-11 items-center justify-center rounded-xl border border-cyan-300/20 bg-cyan-400/10 font-bold text-cyan-300"
+                    >
+                        I
+                    </div>
+
+                    <div>
+                        <p class="text-lg font-bold tracking-wide">
+                            ISAE
+                        </p>
+
+                        <p class="text-xs text-slate-400">
+                            Plataforma Educativa
+                        </p>
+                    </div>
+                </Link>
+
+                <button
+                    type="button"
+                    class="text-slate-400 lg:hidden"
+                    @click="sidebarOpen = false"
+                >
+                    <X class="h-5 w-5" />
+                </button>
+            </div>
+
+            <nav class="flex-1 overflow-y-auto px-4 py-6">
+                <p
+                    class="mb-3 px-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500"
+                >
+                    Principal
+                </p>
+
+                <div class="space-y-1">
+                    <component
+                        :is="item.href === '#' ? 'div' : Link"
+                        v-for="item in menuItems"
+                        :key="item.label"
+                        :href="item.href === '#' ? undefined : item.href"
+                        :class="[
+                            'flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition',
+                            isCurrent(item.href)
+                                ? 'bg-cyan-400/15 text-cyan-200'
+                                : item.href === '#'
+                                  ? 'cursor-default text-slate-500'
+                                  : 'text-slate-300 hover:bg-white/5 hover:text-white',
+                        ]"
+                    >
+                        <component
+                            :is="item.icon"
+                            class="h-5 w-5 shrink-0"
+                        />
+
+                        {{ item.label }}
+
+                        <span
+                            v-if="item.href === '#'"
+                            class="ml-auto rounded-full bg-white/5 px-2 py-0.5 text-[10px] text-slate-500"
+                        >
+                            Próximamente
+                        </span>
+                    </component>
+                </div>
+            </nav>
+
+            <div class="border-t border-white/10 p-4">
+                <div class="rounded-2xl bg-white/5 p-4">
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-cyan-400 font-bold text-slate-950"
+                        >
+                            {{ initials }}
+                        </div>
+
+                        <div class="min-w-0">
+                            <p class="truncate text-sm font-semibold">
+                                {{ fullName }}
+                            </p>
+
+                            <p class="text-xs text-slate-400">
+                                {{ primaryRole }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- contenido -->
+        <div class="lg:pl-72">
+            <!-- topbar -->
+            <header
+                class="sticky top-0 z-30 flex h-20 items-center justify-between border-b border-slate-200 bg-white/95 px-4 backdrop-blur sm:px-6 lg:px-8"
             >
-                <!-- Primary Navigation Menu -->
-                <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div class="flex h-16 justify-between">
-                        <div class="flex">
-                            <!-- Logo -->
-                            <div class="flex shrink-0 items-center">
-                                <Link :href="route('dashboard')">
-                                    <ApplicationLogo
-                                        class="block h-9 w-auto fill-current text-gray-800"
-                                    />
-                                </Link>
-                            </div>
+                <div class="flex items-center gap-4">
+                    <button
+                        type="button"
+                        class="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-600 lg:hidden"
+                        @click="sidebarOpen = true"
+                    >
+                        <Menu class="h-5 w-5" />
+                    </button>
 
-                            <!-- Navigation Links -->
+                    <div>
+                        <p class="text-xs font-medium uppercase tracking-wider text-slate-400">
+                            Plataforma ISAE
+                        </p>
+
+                        <h1 class="text-lg font-bold text-slate-950">
+                            {{ header ?? 'Inicio' }}
+                        </h1>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button
+                        type="button"
+                        class="relative flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-950"
+                    >
+                        <Bell class="h-5 w-5" />
+
+                        <span
+                            class="absolute right-2 top-2 h-2 w-2 rounded-full bg-cyan-500"
+                        />
+                    </button>
+
+                    <div class="relative">
+                        <button
+                            type="button"
+                            class="flex items-center gap-3 rounded-xl px-2 py-1.5 transition hover:bg-slate-100"
+                            @click="userMenuOpen = !userMenuOpen"
+                        >
                             <div
-                                class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex"
+                                class="flex h-10 w-10 items-center justify-center rounded-full bg-[#071a35] text-sm font-bold text-cyan-300"
                             >
-                                <NavLink
-                                    :href="route('dashboard')"
-                                    :active="route().current('dashboard')"
-                                >
-                                    Dashboard
-                                </NavLink>
+                                {{ initials }}
                             </div>
-                        </div>
 
-                        <div class="hidden sm:ms-6 sm:flex sm:items-center">
-                            <!-- Settings Dropdown -->
-                            <div class="relative ms-3">
-                                <Dropdown align="right" width="48">
-                                    <template #trigger>
-                                        <span class="inline-flex rounded-md">
-                                            <button
-                                                type="button"
-                                                class="inline-flex items-center rounded-md border border-transparent bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-500 transition duration-150 ease-in-out hover:text-gray-700 focus:outline-none"
-                                            >
-                                                {{ $page.props.auth.user.name }}
+                            <div class="hidden text-left sm:block">
+                                <p class="max-w-44 truncate text-sm font-semibold text-slate-900">
+                                    {{ fullName }}
+                                </p>
 
-                                                <svg
-                                                    class="-me-0.5 ms-2 h-4 w-4"
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    viewBox="0 0 20 20"
-                                                    fill="currentColor"
-                                                >
-                                                    <path
-                                                        fill-rule="evenodd"
-                                                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                                        clip-rule="evenodd"
-                                                    />
-                                                </svg>
-                                            </button>
-                                        </span>
-                                    </template>
-
-                                    <template #content>
-                                        <DropdownLink
-                                            :href="route('profile.edit')"
-                                        >
-                                            Profile
-                                        </DropdownLink>
-                                        <DropdownLink
-                                            :href="route('logout')"
-                                            method="post"
-                                            as="button"
-                                        >
-                                            Log Out
-                                        </DropdownLink>
-                                    </template>
-                                </Dropdown>
+                                <p class="text-xs text-slate-500">
+                                    {{ primaryRole }}
+                                </p>
                             </div>
-                        </div>
 
-                        <!-- Hamburger -->
-                        <div class="-me-2 flex items-center sm:hidden">
+                            <ChevronDown class="hidden h-4 w-4 text-slate-400 sm:block" />
+                        </button>
+
+                        <div
+                            v-if="userMenuOpen"
+                            class="absolute right-0 mt-2 w-56 overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-xl"
+                        >
+                            <div class="border-b border-slate-100 px-3 py-3">
+                                <p class="truncate text-sm font-semibold text-slate-900">
+                                    {{ fullName }}
+                                </p>
+
+                                <p class="mt-1 truncate text-xs text-slate-500">
+                                    DNI {{ user?.person?.dni ?? '—' }}
+                                </p>
+                            </div>
+
+                            <Link
+                                :href="route('profile.edit')"
+                                class="mt-2 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-950"
+                            >
+                                <Settings class="h-4 w-4" />
+                                Mi perfil
+                            </Link>
+
                             <button
-                                @click="
-                                    showingNavigationDropdown =
-                                        !showingNavigationDropdown
-                                "
-                                class="inline-flex items-center justify-center rounded-md p-2 text-gray-400 transition duration-150 ease-in-out hover:bg-gray-100 hover:text-gray-500 focus:bg-gray-100 focus:text-gray-500 focus:outline-none"
+                                type="button"
+                                class="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-red-600 hover:bg-red-50"
+                                @click="logout"
                             >
-                                <svg
-                                    class="h-6 w-6"
-                                    stroke="currentColor"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        :class="{
-                                            hidden: showingNavigationDropdown,
-                                            'inline-flex':
-                                                !showingNavigationDropdown,
-                                        }"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M4 6h16M4 12h16M4 18h16"
-                                    />
-                                    <path
-                                        :class="{
-                                            hidden: !showingNavigationDropdown,
-                                            'inline-flex':
-                                                showingNavigationDropdown,
-                                        }"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M6 18L18 6M6 6l12 12"
-                                    />
-                                </svg>
+                                <LogOut class="h-4 w-4" />
+                                Cerrar sesión
                             </button>
                         </div>
                     </div>
                 </div>
-
-                <!-- Responsive Navigation Menu -->
-                <div
-                    :class="{
-                        block: showingNavigationDropdown,
-                        hidden: !showingNavigationDropdown,
-                    }"
-                    class="sm:hidden"
-                >
-                    <div class="space-y-1 pb-3 pt-2">
-                        <ResponsiveNavLink
-                            :href="route('dashboard')"
-                            :active="route().current('dashboard')"
-                        >
-                            Dashboard
-                        </ResponsiveNavLink>
-                    </div>
-
-                    <!-- Responsive Settings Options -->
-                    <div
-                        class="border-t border-gray-200 pb-1 pt-4"
-                    >
-                        <div class="px-4">
-                            <div
-                                class="text-base font-medium text-gray-800"
-                            >
-                                {{ $page.props.auth.user.name }}
-                            </div>
-                            <div class="text-sm font-medium text-gray-500">
-                                {{ $page.props.auth.user.email }}
-                            </div>
-                        </div>
-
-                        <div class="mt-3 space-y-1">
-                            <ResponsiveNavLink :href="route('profile.edit')">
-                                Profile
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink
-                                :href="route('logout')"
-                                method="post"
-                                as="button"
-                            >
-                                Log Out
-                            </ResponsiveNavLink>
-                        </div>
-                    </div>
-                </div>
-            </nav>
-
-            <!-- Page Heading -->
-            <header
-                class="bg-white shadow"
-                v-if="$slots.header"
-            >
-                <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-                    <slot name="header" />
-                </div>
             </header>
 
-            <!-- Page Content -->
-            <main>
+            <main class="p-4 sm:p-6 lg:p-8">
                 <slot />
             </main>
         </div>

@@ -7,32 +7,41 @@ use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
 {
-    /**
-     * The root template that is loaded on the first page visit.
-     *
-     * @var string
-     */
     protected $rootView = 'app';
 
-    /**
-     * Determine the current asset version.
-     */
     public function version(Request $request): ?string
     {
         return parent::version($request);
     }
 
-    /**
-     * Define the props that are shared by default.
-     *
-     * @return array<string, mixed>
-     */
     public function share(Request $request): array
     {
+        $user = $request->user();
+
+        if ($user) {
+            $user->loadMissing('person');
+        }
+
         return [
             ...parent::share($request),
+
             'auth' => [
-                'user' => $request->user(),
+                'user' => $user ? [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'is_active' => $user->is_active,
+
+                    'person' => $user->person ? [
+                        'id' => $user->person->id,
+                        'dni' => $user->person->dni,
+                        'first_name' => $user->person->first_name,
+                        'last_name' => $user->person->last_name,
+                        'full_name' => $user->person->full_name,
+                    ] : null,
+
+                    'roles' => $user->getRoleNames()->values()->all(),
+                ] : null,
             ],
         ];
     }
