@@ -108,11 +108,27 @@ class PersonController extends Controller
         $this->ensureCanManagePeople($request);
 
         $person->load([
-            'studentProfile',
+            'studentProfile.guardians.person',
             'teacherProfile',
-            'guardianProfile',
+            'guardianProfile.students.person',
             'user.roles',
         ]);
+
+        $availableStudents = StudentProfile::query()
+            ->with('person')
+            ->whereHas('person')
+            ->orderBy(
+                Person::select('last_name')
+                    ->whereColumn('people.id', 'student_profiles.person_id'),
+            )
+            ->get()
+            ->map(fn (StudentProfile $student) => [
+                'id' => $student->id,
+                'person_id' => $student->person_id,
+                'dni' => $student->person->dni,
+                'full_name' => $student->person->full_name,
+            ])
+            ->values();
 
         return Inertia::render('People/Show', [
             'person' => [
@@ -132,6 +148,42 @@ class PersonController extends Controller
                     'guardian' => $person->guardianProfile !== null,
                 ],
 
+                'student_profile' => $person->studentProfile ? [
+                    'id' => $person->studentProfile->id,
+
+                    'guardians' => $person->studentProfile
+                        ->guardians
+                        ->map(fn (GuardianProfile $guardian) => [
+                            'id' => $guardian->id,
+                            'person_id' => $guardian->person_id,
+                            'full_name' => $guardian->person->full_name,
+                            'dni' => $guardian->person->dni,
+                            'relationship' => $guardian->pivot->relationship,
+                            'is_primary' => (bool) $guardian->pivot->is_primary,
+                            'authorized_pickup' => (bool) $guardian->pivot->authorized_pickup,
+                            'receives_communications' => (bool) $guardian->pivot->receives_communications,
+                        ])
+                        ->values(),
+                ] : null,
+
+                'guardian_profile' => $person->guardianProfile ? [
+                    'id' => $person->guardianProfile->id,
+
+                    'students' => $person->guardianProfile
+                        ->students
+                        ->map(fn (StudentProfile $student) => [
+                            'id' => $student->id,
+                            'person_id' => $student->person_id,
+                            'full_name' => $student->person->full_name,
+                            'dni' => $student->person->dni,
+                            'relationship' => $student->pivot->relationship,
+                            'is_primary' => (bool) $student->pivot->is_primary,
+                            'authorized_pickup' => (bool) $student->pivot->authorized_pickup,
+                            'receives_communications' => (bool) $student->pivot->receives_communications,
+                        ])
+                        ->values(),
+                ] : null,
+
                 'user' => $person->user ? [
                     'id' => $person->user->id,
                     'email' => $person->user->email,
@@ -143,6 +195,8 @@ class PersonController extends Controller
                         ->all(),
                 ] : null,
             ],
+
+            'availableStudents' => $availableStudents,
         ]);
     }
 
@@ -208,17 +262,10 @@ class PersonController extends Controller
 
             $user = $person->user;
 
-            /*
-             * Si todavía no tiene cuenta y no se solicitó acceso,
-             * solamente actualizamos los perfiles institucionales.
-             */
             if (! $user && ! $data['is_active']) {
                 return;
             }
 
-            /*
-             * Crear cuenta si todavía no existe.
-             */
             if (! $user) {
                 $user = User::create([
                     'person_id' => $person->id,
@@ -241,13 +288,6 @@ class PersonController extends Controller
                 $user->update($update);
             }
 
-            /*
-             * Los roles vinculados a perfiles institucionales se
-             * sincronizan automáticamente.
-             *
-             * Otros roles (admin, gestión, director, preceptor)
-             * se conservan.
-             */
             $institutionalRoles = [
                 'alumno',
                 'docente',
@@ -307,6 +347,10 @@ class PersonController extends Controller
             return;
         }
 
+        /*
+         * Cuando los perfiles tengan información histórica importante,
+         * esta eliminación deberá reemplazarse por un estado activo/inactivo.
+         */
         $profileClass::query()
             ->where('person_id', $person->id)
             ->delete();

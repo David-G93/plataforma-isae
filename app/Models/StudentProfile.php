@@ -2,14 +2,13 @@
 
 namespace App\Models;
 
-use Database\Factories\StudentProfileFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class StudentProfile extends Model
 {
-    /** @use HasFactory<StudentProfileFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -19,5 +18,20 @@ class StudentProfile extends Model
     public function person(): BelongsTo
     {
         return $this->belongsTo(Person::class);
+    }
+
+    public function guardians(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            GuardianProfile::class,
+            'guardian_student',
+        )
+            ->withPivot([
+                'relationship',
+                'is_primary',
+                'authorized_pickup',
+                'receives_communications',
+            ])
+            ->withTimestamps();
     }
 }

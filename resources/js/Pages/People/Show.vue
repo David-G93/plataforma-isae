@@ -4,6 +4,7 @@ import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import GuardianStudentsCard from '@/Components/People/GuardianStudentsCard.vue';
 import {
     ArrowLeft,
     BookOpen,
@@ -40,6 +41,36 @@ const props = defineProps<{
             guardian: boolean;
         };
 
+        student_profile: {
+            id: number;
+
+            guardians: {
+                id: number;
+                person_id: number;
+                full_name: string;
+                dni: string;
+                relationship: string | null;
+                is_primary: boolean;
+                authorized_pickup: boolean;
+                receives_communications: boolean;
+            }[];
+        } | null;
+
+        guardian_profile: {
+            id: number;
+
+            students: {
+                id: number;
+                person_id: number;
+                dni: string;
+                full_name: string;
+                relationship: string | null;
+                is_primary: boolean;
+                authorized_pickup: boolean;
+                receives_communications: boolean;
+            }[];
+        } | null;
+
         user: {
             id: number;
             email: string;
@@ -47,6 +78,13 @@ const props = defineProps<{
             roles: string[];
         } | null;
     };
+
+    availableStudents: {
+        id: number;
+        person_id: number;
+        dni: string;
+        full_name: string;
+    }[];
 }>();
 
 const showPassword = ref(false);
@@ -794,5 +832,15 @@ const saveInstitutionalAccess = () => {
                 </div>
             </form>
         </div>
+
+        <GuardianStudentsCard
+    v-if="person.guardian_profile"
+    :guardian-profile-id="person.guardian_profile.id"
+    :students="person.guardian_profile.students"
+    :available-students="availableStudents"
+/>
+        
     </AuthenticatedLayout>
+
+    
 </template>
