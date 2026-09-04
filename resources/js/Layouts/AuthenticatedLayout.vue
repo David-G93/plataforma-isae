@@ -99,14 +99,14 @@ const allMenuItems = [
         routePattern: 'people.*',
         available: true,
     },
-    {
-        label: 'Académico',
-        href: '#',
-        icon: BookOpen,
-        permission: 'academic.view',
-        routePattern: null,
-        available: false,
-    },
+{
+    label: 'Académico',
+    href: route('academic.index'),
+    icon: BookOpen,
+    permission: 'academic.view',
+    routePattern: 'academic.*',
+    available: true,
+},
     {
         label: 'Asistencia',
         href: '#',

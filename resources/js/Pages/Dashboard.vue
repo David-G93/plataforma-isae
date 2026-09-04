@@ -66,15 +66,15 @@ const allModules = [
         href: route('people.index'),
         available: true,
     },
-    {
-        title: 'Académico',
-        description:
-            'Ciclos lectivos, cursos, divisiones, materias y matrículas.',
-        icon: BookOpen,
-        permission: 'academic.view',
-        href: '#',
-        available: false,
-    },
+{
+    title: 'Académico',
+    description:
+        'Ciclos lectivos, cursos, divisiones, materias y matrículas.',
+    icon: BookOpen,
+    permission: 'academic.view',
+    href: route('academic.index'),
+    available: true,
+},
     {
         title: 'Asistencia',
         description:

@@ -2,14 +2,13 @@
 
 namespace App\Models;
 
-use Database\Factories\TeacherProfileFactory;
-use Illuminate\Database\Eloquent\Factories\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class TeacherProfile extends Model
 {
-    /** @use HasFactory<TeacherProfileFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -19,5 +18,13 @@ class TeacherProfile extends Model
     public function person(): BelongsTo
     {
         return $this->belongsTo(Person::class);
+    }
+
+    public function teachings(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Teaching::class,
+            'teaching_teacher',
+        )->withTimestamps();
     }
 }
