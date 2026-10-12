@@ -52,4 +52,11 @@ class StudyPlanSubject extends Model
     {
         return $this->hasMany(Teaching::class);
     }
+
+    public function modalityRules(): HasMany
+    {
+        return $this->hasMany(
+            StudyPlanSubjectModalityRule::class,
+        );
+    }
 }

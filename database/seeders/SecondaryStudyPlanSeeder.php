@@ -9,6 +9,7 @@ use App\Models\Level;
 use App\Models\Modality;
 use App\Models\StudyPlan;
 use App\Models\StudyPlanSubject;
+use App\Models\StudyPlanSubjectModalityRule;
 use App\Models\Subject;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -39,9 +40,19 @@ class SecondaryStudyPlanSeeder extends Seeder
                 );
             }
 
+            $naturalSciencesModality = Modality::query()
+                ->where('code', 'ciencias-naturales')
+                ->first();
+
             $informaticsModality = Modality::query()
                 ->where('code', 'informatica')
                 ->first();
+
+            if (! $naturalSciencesModality) {
+                throw new RuntimeException(
+                    'No existe la modalidad Ciencias Naturales.',
+                );
+            }
 
             if (! $informaticsModality) {
                 throw new RuntimeException(
@@ -83,7 +94,7 @@ class SecondaryStudyPlanSeeder extends Seeder
 
             /*
             |--------------------------------------------------------------------------
-            | Eliminar plan provisional viejo
+            | Limpiar plan provisional viejo
             |--------------------------------------------------------------------------
             */
 
@@ -107,29 +118,46 @@ class SecondaryStudyPlanSeeder extends Seeder
 
             /*
             |--------------------------------------------------------------------------
-            | Catálogo de materias necesarias
+            | Catálogo
             |--------------------------------------------------------------------------
-            |
-            | Subject es global.
-            |
-            | Si una materia ya existe por Primaria, como Matemática,
-            | Inglés, Geografía, Historia, etc., se reutiliza.
-            |
             */
 
             $subjectCatalog = [
-                'biologia' => 'Biología',
-                'educacion-tecnologica' => 'Educ. Tecnológica',
-                'educacion-fisica' => 'Educación Física',
-                'fisica-quimica' => 'Física y Química',
-                'formacion-etica-ciudadana' => 'Formación Ética y Ciudadana',
-                'geografia' => 'Geografía',
-                'historia' => 'Historia',
-                'ingles' => 'Inglés',
-                'lengua-y-literatura' => 'Lengua y Literatura',
-                'matematica' => 'Matemática',
-                'plastica' => 'Plástica',
-                'teatro' => 'Teatro',
+                'biologia' =>
+                    'Biología',
+
+                'educacion-tecnologica' =>
+                    'Educ. Tecnológica',
+
+                'educacion-fisica' =>
+                    'Educación Física',
+
+                'fisica-quimica' =>
+                    'Física y Química',
+
+                'formacion-etica-ciudadana' =>
+                    'Formación Ética y Ciudadana',
+
+                'geografia' =>
+                    'Geografía',
+
+                'historia' =>
+                    'Historia',
+
+                'ingles' =>
+                    'Inglés',
+
+                'lengua-y-literatura' =>
+                    'Lengua y Literatura',
+
+                'matematica' =>
+                    'Matemática',
+
+                'plastica' =>
+                    'Plástica',
+
+                'teatro' =>
+                    'Teatro',
 
                 'laboratorio-electronica-i' =>
                     'Lab. de Electrónica I',
@@ -145,6 +173,75 @@ class SecondaryStudyPlanSeeder extends Seeder
 
                 'informatica' =>
                     'Informática',
+
+                'construccion-ciudadania' =>
+                    'Construcción de Ciudadanía',
+
+                'educacion-artistica' =>
+                    'Educación Artística',
+
+                'fisica' =>
+                    'Física',
+
+                'geologia' =>
+                    'Geología',
+
+                'quimica' =>
+                    'Química',
+
+                'sistemas-digitales-informacion' =>
+                    'Sist. Digitales de la Información',
+
+                'tics-aplicaciones' =>
+                    'TICS y Aplicaciones',
+
+                'ciencia-tecnologia-sociedad' =>
+                    'Ciencia, Tecnología y Sociedad',
+
+                'comunicacion-audiovisual' =>
+                    'Comunicación Audiovisual',
+
+                'eo-microemprendimiento' =>
+                    'E.O.: Microemprendimiento',
+
+                'ecologia' =>
+                    'Ecología',
+
+                'economia' =>
+                    'Economía',
+
+                'lenguajes-tecnicas-programacion' =>
+                    'Lenguajes y Téc. de Programación',
+
+                /*
+                |--------------------------------------------------------------------------
+                | 5° Año
+                |--------------------------------------------------------------------------
+                */
+
+                'astronomia' =>
+                    'Astronomía',
+
+                'biofisica' =>
+                    'Biofísica',
+
+                'bioquimica' =>
+                    'Bioquímica',
+
+                'eo-produccion-audiovisual-n' =>
+                    'E.O.: Producción Audiovisual (N)',
+
+                'filosofia' =>
+                    'Filosofía',
+
+                'produccion-audiovisual-digital-i' =>
+                    'Producción Audiovisual Digital (I)',
+
+                'proyecto-investigacion-intervencion' =>
+                    'Proyecto de Inv. e Intervención',
+
+                'robotica' =>
+                    'Robótica',
             ];
 
             $subjects = [];
@@ -164,180 +261,398 @@ class SecondaryStudyPlanSeeder extends Seeder
 
             /*
             |--------------------------------------------------------------------------
-            | 1° Año 2026 - Bioinformática
+            | 1° Año - Bioinformática
             |--------------------------------------------------------------------------
-            |
-            | Toda la cohorte cursa las mismas materias.
-            |
-            | Por eso todas tienen modality_id = null.
-            |
             */
 
             $firstYear = $this->grade('secundario-1');
 
             $firstYearSubjects = [
-                'biologia',
-                'educacion-tecnologica',
-                'educacion-fisica',
-                'fisica-quimica',
-                'formacion-etica-ciudadana',
-                'geografia',
-                'historia',
-                'ingles',
-                'laboratorio-electronica-i',
-                'lengua-y-literatura',
-                'matematica',
-                'plastica',
-                'programacion-i',
-                'taller-maker-i',
-                'teatro',
+                ['code' => 'biologia', 'modality_id' => null],
+                ['code' => 'educacion-tecnologica', 'modality_id' => null],
+                ['code' => 'educacion-fisica', 'modality_id' => null],
+                ['code' => 'fisica-quimica', 'modality_id' => null],
+                ['code' => 'formacion-etica-ciudadana', 'modality_id' => null],
+                ['code' => 'geografia', 'modality_id' => null],
+                ['code' => 'historia', 'modality_id' => null],
+                ['code' => 'ingles', 'modality_id' => null],
+                ['code' => 'laboratorio-electronica-i', 'modality_id' => null],
+                ['code' => 'lengua-y-literatura', 'modality_id' => null],
+                ['code' => 'matematica', 'modality_id' => null],
+                ['code' => 'plastica', 'modality_id' => null],
+                ['code' => 'programacion-i', 'modality_id' => null],
+                ['code' => 'taller-maker-i', 'modality_id' => null],
+                ['code' => 'teatro', 'modality_id' => null],
             ];
 
-            /*
-             * Sincronizamos exactamente la estructura confirmada.
-             */
-            StudyPlanSubject::query()
-                ->where('study_plan_id', $bioinformaticsPlan->id)
-                ->where('grade_id', $firstYear->id)
-                ->delete();
-
-            foreach ($firstYearSubjects as $index => $subjectCode) {
-                StudyPlanSubject::query()->create([
-                    'study_plan_id' => $bioinformaticsPlan->id,
-                    'grade_id' => $firstYear->id,
-                    'subject_id' => $subjects[$subjectCode]->id,
-                    'modality_id' => null,
-                    'order' => $index + 1,
-                    'is_active' => true,
-                ]);
-            }
+            $this->syncGradeSubjects(
+                $bioinformaticsPlan,
+                $firstYear,
+                $firstYearSubjects,
+                $subjects,
+            );
 
             /*
             |--------------------------------------------------------------------------
-            | 2° Año 2026 - Plan legado
+            | 2° Año - Plan legado
             |--------------------------------------------------------------------------
-            |
-            | Regla institucional confirmada:
-            |
-            | - La mayoría de las materias son comunes.
-            |
-            | - Informática aparece tanto para alumnos de Ciencias Naturales
-            |   como de Informática. Aunque operativamente pueda haber un
-            |   desdoble, académicamente funciona como UNA materia:
-            |
-            |     * mismos contenidos
-            |     * mismo boletín
-            |     * calificaciones juntas
-            |     * asistencia junta
-            |     * futura aula virtual compartida
-            |
-            |   Por eso Informática lleva modality_id = null.
-            |
-            | - E.I. Lab. de Electrónica es exclusiva de la modalidad
-            |   Informática.
-            |
             */
 
             $secondYear = $this->grade('secundario-2');
 
             $secondYearSubjects = [
-                [
-                    'code' => 'biologia',
-                    'modality_id' => null,
-                ],
+                ['code' => 'biologia', 'modality_id' => null],
+
                 [
                     'code' => 'ei-laboratorio-electronica',
                     'modality_id' => $informaticsModality->id,
                 ],
+
+                ['code' => 'educacion-tecnologica', 'modality_id' => null],
+                ['code' => 'educacion-fisica', 'modality_id' => null],
+                ['code' => 'fisica-quimica', 'modality_id' => null],
+                ['code' => 'formacion-etica-ciudadana', 'modality_id' => null],
+                ['code' => 'geografia', 'modality_id' => null],
+                ['code' => 'historia', 'modality_id' => null],
+
+                /*
+                 * Informática es académicamente común:
+                 * mismo contenido, notas, asistencia, boletín y futura aula.
+                 */
+                ['code' => 'informatica', 'modality_id' => null],
+
+                ['code' => 'ingles', 'modality_id' => null],
+                ['code' => 'lengua-y-literatura', 'modality_id' => null],
+                ['code' => 'matematica', 'modality_id' => null],
+                ['code' => 'plastica', 'modality_id' => null],
+                ['code' => 'teatro', 'modality_id' => null],
+            ];
+
+            $this->syncGradeSubjects(
+                $legacyPlan,
+                $secondYear,
+                $secondYearSubjects,
+                $subjects,
+            );
+
+            /*
+            |--------------------------------------------------------------------------
+            | 3° Año - Plan legado
+            |--------------------------------------------------------------------------
+            */
+
+            $thirdYear = $this->grade('secundario-3');
+
+            $thirdYearSubjects = [
+                ['code' => 'biologia', 'modality_id' => null],
+                ['code' => 'construccion-ciudadania', 'modality_id' => null],
+                ['code' => 'educacion-artistica', 'modality_id' => null],
+                ['code' => 'educacion-fisica', 'modality_id' => null],
+                ['code' => 'fisica', 'modality_id' => null],
+                ['code' => 'geografia', 'modality_id' => null],
+
                 [
-                    'code' => 'educacion-tecnologica',
+                    'code' => 'geologia',
+                    'modality_id' => $naturalSciencesModality->id,
+                ],
+
+                ['code' => 'historia', 'modality_id' => null],
+                ['code' => 'ingles', 'modality_id' => null],
+                ['code' => 'lengua-y-literatura', 'modality_id' => null],
+                ['code' => 'matematica', 'modality_id' => null],
+
+                /*
+                 * Química es una sola cursada para todo el curso.
+                 */
+                ['code' => 'quimica', 'modality_id' => null],
+
+                [
+                    'code' => 'sistemas-digitales-informacion',
+                    'modality_id' => $informaticsModality->id,
+                ],
+
+                [
+                    'code' => 'tics-aplicaciones',
+                    'modality_id' => $informaticsModality->id,
+                ],
+            ];
+
+            $thirdYearPlanSubjects = $this->syncGradeSubjects(
+                $legacyPlan,
+                $thirdYear,
+                $thirdYearSubjects,
+                $subjects,
+            );
+
+            /*
+            |--------------------------------------------------------------------------
+            | Regla especial: Química de 3° Año
+            |--------------------------------------------------------------------------
+            */
+
+            $chemistryPlanSubject =
+                $thirdYearPlanSubjects['quimica'];
+
+            StudyPlanSubjectModalityRule::query()->updateOrCreate(
+                [
+                    'study_plan_subject_id' =>
+                        $chemistryPlanSubject->id,
+
+                    'modality_id' =>
+                        $naturalSciencesModality->id,
+                ],
+                [
+                    'counts_for_curricular_average' => true,
+                    'counts_for_institutional_average' => true,
+                ],
+            );
+
+            StudyPlanSubjectModalityRule::query()->updateOrCreate(
+                [
+                    'study_plan_subject_id' =>
+                        $chemistryPlanSubject->id,
+
+                    'modality_id' =>
+                        $informaticsModality->id,
+                ],
+                [
+                    'counts_for_curricular_average' => false,
+                    'counts_for_institutional_average' => true,
+                ],
+            );
+
+            /*
+            |--------------------------------------------------------------------------
+            | 4° Año - Plan legado
+            |--------------------------------------------------------------------------
+            |
+            | 20 alumnos = común
+            | 11 alumnos = Cs. Naturales
+            |  9 alumnos = Informática
+            |--------------------------------------------------------------------------
+            */
+
+            $fourthYear = $this->grade('secundario-4');
+
+            $fourthYearSubjects = [
+                [
+                    'code' => 'biologia',
+                    'modality_id' => $naturalSciencesModality->id,
+                ],
+
+                [
+                    'code' => 'ciencia-tecnologia-sociedad',
                     'modality_id' => null,
                 ],
+
+                [
+                    'code' => 'comunicacion-audiovisual',
+                    'modality_id' => $informaticsModality->id,
+                ],
+
+                [
+                    'code' => 'construccion-ciudadania',
+                    'modality_id' => null,
+                ],
+
+                [
+                    'code' => 'eo-microemprendimiento',
+                    'modality_id' => null,
+                ],
+
+                [
+                    'code' => 'ecologia',
+                    'modality_id' => $naturalSciencesModality->id,
+                ],
+
+                [
+                    'code' => 'economia',
+                    'modality_id' => null,
+                ],
+
                 [
                     'code' => 'educacion-fisica',
                     'modality_id' => null,
                 ],
+
                 [
-                    'code' => 'fisica-quimica',
-                    'modality_id' => null,
+                    'code' => 'fisica',
+                    'modality_id' => $naturalSciencesModality->id,
                 ],
-                [
-                    'code' => 'formacion-etica-ciudadana',
-                    'modality_id' => null,
-                ],
-                [
-                    'code' => 'geografia',
-                    'modality_id' => null,
-                ],
-                [
-                    'code' => 'historia',
-                    'modality_id' => null,
-                ],
-                [
-                    'code' => 'informatica',
-                    'modality_id' => null,
-                ],
+
                 [
                     'code' => 'ingles',
                     'modality_id' => null,
                 ],
+
                 [
                     'code' => 'lengua-y-literatura',
                     'modality_id' => null,
                 ],
+
+                [
+                    'code' => 'lenguajes-tecnicas-programacion',
+                    'modality_id' => $informaticsModality->id,
+                ],
+
                 [
                     'code' => 'matematica',
                     'modality_id' => null,
                 ],
+
                 [
-                    'code' => 'plastica',
+                    'code' => 'quimica',
                     'modality_id' => null,
                 ],
+
                 [
-                    'code' => 'teatro',
-                    'modality_id' => null,
+                    'code' => 'sistemas-digitales-informacion',
+                    'modality_id' => $informaticsModality->id,
                 ],
             ];
 
-            /*
-             * Eliminamos únicamente las asociaciones anteriores de 2° Año
-             * para dejar exactamente la estructura real confirmada.
-             */
-            StudyPlanSubject::query()
-                ->where('study_plan_id', $legacyPlan->id)
-                ->where('grade_id', $secondYear->id)
-                ->delete();
-
-            foreach ($secondYearSubjects as $index => $subjectData) {
-                $subject = $subjects[$subjectData['code']] ?? null;
-
-                if (! $subject) {
-                    throw new RuntimeException(
-                        "No existe la materia {$subjectData['code']}.",
-                    );
-                }
-
-                StudyPlanSubject::query()->create([
-                    'study_plan_id' => $legacyPlan->id,
-                    'grade_id' => $secondYear->id,
-                    'subject_id' => $subject->id,
-                    'modality_id' => $subjectData['modality_id'],
-                    'order' => $index + 1,
-                    'is_active' => true,
-                ]);
-            }
+            $this->syncGradeSubjects(
+                $legacyPlan,
+                $fourthYear,
+                $fourthYearSubjects,
+                $subjects,
+            );
 
             /*
             |--------------------------------------------------------------------------
-            | Cursos 2026 y plan correspondiente
+            | 5° Año - Plan legado
             |--------------------------------------------------------------------------
             |
-            | La nueva modalidad avanza por cohorte.
+            | 32 alumnos = común
+            |  5 alumnos = Ciencias Naturales
+            | 27 alumnos = Informática
             |
-            | 2026:
-            | 1°       → Bioinformática
-            | 2° a 5° → Plan legado
+            | Todas las materias correspondientes al alumno cuentan
+            | curricular + institucional.
+            |--------------------------------------------------------------------------
+            */
+
+            $fifthYear = $this->grade('secundario-5');
+
+            $fifthYearSubjects = [
+                /*
+                 * Ciencias Naturales
+                 */
+                [
+                    'code' => 'astronomia',
+                    'modality_id' => $naturalSciencesModality->id,
+                ],
+
+                /*
+                 * Comunes
+                 */
+                [
+                    'code' => 'biofisica',
+                    'modality_id' => null,
+                ],
+
+                [
+                    'code' => 'bioquimica',
+                    'modality_id' => null,
+                ],
+
+                [
+                    'code' => 'ciencia-tecnologia-sociedad',
+                    'modality_id' => null,
+                ],
+
+                [
+                    'code' => 'construccion-ciudadania',
+                    'modality_id' => null,
+                ],
+
+                /*
+                 * Ciencias Naturales
+                 */
+                [
+                    'code' => 'eo-produccion-audiovisual-n',
+                    'modality_id' => $naturalSciencesModality->id,
+                ],
+
+                /*
+                 * Comunes
+                 */
+                [
+                    'code' => 'educacion-fisica',
+                    'modality_id' => null,
+                ],
+
+                [
+                    'code' => 'filosofia',
+                    'modality_id' => null,
+                ],
+
+                [
+                    'code' => 'ingles',
+                    'modality_id' => null,
+                ],
+
+                [
+                    'code' => 'lengua-y-literatura',
+                    'modality_id' => null,
+                ],
+
+                /*
+                 * Informática
+                 */
+                [
+                    'code' => 'lenguajes-tecnicas-programacion',
+                    'modality_id' => $informaticsModality->id,
+                ],
+
+                /*
+                 * Común
+                 */
+                [
+                    'code' => 'matematica',
+                    'modality_id' => null,
+                ],
+
+                /*
+                 * Informática
+                 */
+                [
+                    'code' => 'produccion-audiovisual-digital-i',
+                    'modality_id' => $informaticsModality->id,
+                ],
+
+                /*
+                 * Común
+                 */
+                [
+                    'code' => 'proyecto-investigacion-intervencion',
+                    'modality_id' => null,
+                ],
+
+                /*
+                 * Informática
+                 */
+                [
+                    'code' => 'robotica',
+                    'modality_id' => $informaticsModality->id,
+                ],
+            ];
+
+            $this->syncGradeSubjects(
+                $legacyPlan,
+                $fifthYear,
+                $fifthYearSubjects,
+                $subjects,
+            );
+
+            /*
+            |--------------------------------------------------------------------------
+            | Cursos 2026
+            |--------------------------------------------------------------------------
             |
+            | 1° → nueva cohorte Bioinformática
+            | 2° a 5° → plan legado
+            |--------------------------------------------------------------------------
             */
 
             $courseAssignments = [
@@ -382,5 +697,42 @@ class SecondaryStudyPlanSeeder extends Seeder
         }
 
         return $grade;
+    }
+
+    private function syncGradeSubjects(
+        StudyPlan $studyPlan,
+        Grade $grade,
+        array $subjectData,
+        array $subjects,
+    ): array {
+        StudyPlanSubject::query()
+            ->where('study_plan_id', $studyPlan->id)
+            ->where('grade_id', $grade->id)
+            ->delete();
+
+        $created = [];
+
+        foreach ($subjectData as $index => $data) {
+            $subject = $subjects[$data['code']] ?? null;
+
+            if (! $subject) {
+                throw new RuntimeException(
+                    "No existe la materia {$data['code']}.",
+                );
+            }
+
+            $planSubject = StudyPlanSubject::query()->create([
+                'study_plan_id' => $studyPlan->id,
+                'grade_id' => $grade->id,
+                'subject_id' => $subject->id,
+                'modality_id' => $data['modality_id'],
+                'order' => $index + 1,
+                'is_active' => true,
+            ]);
+
+            $created[$data['code']] = $planSubject;
+        }
+
+        return $created;
     }
 }
