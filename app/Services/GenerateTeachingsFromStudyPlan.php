@@ -18,11 +18,17 @@ class GenerateTeachingsFromStudyPlan
         ]);
 
         $course = $division->course;
-        $studyPlan = $course->studyPlan;
+        $studyPlan = $course?->studyPlan;
+
+        if (! $course) {
+            throw new RuntimeException(
+                'La división no tiene un curso asignado.',
+            );
+        }
 
         if (! $studyPlan) {
             throw new RuntimeException(
-                'El curso no tiene un plan de estudio asignado.',
+                "El curso {$course->name} no tiene un plan de estudio asignado.",
             );
         }
 
@@ -49,17 +55,49 @@ class GenerateTeachingsFromStudyPlan
             $division,
             $planSubjects,
         ) {
+            $validStudyPlanSubjectIds = $planSubjects
+                ->pluck('id');
+
+            /*
+             * Si el plan cambió y había dictados anteriores que
+             * ya no corresponden, no los borramos: los desactivamos.
+             */
+            Teaching::query()
+                ->where('division_id', $division->id)
+                ->when(
+                    $validStudyPlanSubjectIds->isNotEmpty(),
+                    fn ($query) => $query->whereNotIn(
+                        'study_plan_subject_id',
+                        $validStudyPlanSubjectIds,
+                    ),
+                )
+                ->when(
+                    $validStudyPlanSubjectIds->isEmpty(),
+                    fn ($query) => $query,
+                )
+                ->update([
+                    'is_active' => false,
+                ]);
+
             return $planSubjects
                 ->map(function ($planSubject) use ($division) {
                     return Teaching::query()->updateOrCreate(
                         [
-                            'division_id' => $division->id,
-                            'study_plan_subject_id' => $planSubject->id,
+                            'division_id' =>
+                                $division->id,
+
+                            'study_plan_subject_id' =>
+                                $planSubject->id,
                         ],
                         [
-                            'subject_id' => $planSubject->subject_id,
-                            'modality_id' => $planSubject->modality_id,
-                            'is_active' => true,
+                            'subject_id' =>
+                                $planSubject->subject_id,
+
+                            'modality_id' =>
+                                $planSubject->modality_id,
+
+                            'is_active' =>
+                                true,
                         ],
                     );
                 })

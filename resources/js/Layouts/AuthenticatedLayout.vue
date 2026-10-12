@@ -104,7 +104,15 @@ const allMenuItems = [
     href: route('academic.index'),
     icon: BookOpen,
     permission: 'academic.view',
-    routePattern: 'academic.*',
+    routePattern: 'academic.index',
+    available: true,
+},
+{
+    label: 'Dictados',
+    href: route('academic.teachings.index'),
+    icon: GraduationCap,
+    permission: 'academic.view',
+    routePattern: 'academic.teachings.*',
     available: true,
 },
     {

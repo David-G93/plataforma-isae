@@ -6,6 +6,7 @@ use App\Http\Controllers\PersonController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Http\Controllers\TeachingController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -120,6 +121,16 @@ Route::middleware('auth')->group(function () {
             '/academic/study-plan-subjects',
             [AcademicController::class, 'storeStudyPlanSubject'],
         )->name('academic.study-plan-subjects.store');
+
+        Route::post(
+    '/academic/teachings/generate',
+    [TeachingController::class, 'generate'],
+)->name('academic.teachings.generate');
+
+Route::put(
+    '/academic/teachings/{teaching}/teachers',
+    [TeachingController::class, 'updateTeachers'],
+)->name('academic.teachings.teachers.update');
     });
 
     /*
@@ -133,6 +144,11 @@ Route::middleware('auth')->group(function () {
             '/academic',
             [AcademicController::class, 'index'],
         )->name('academic.index');
+
+        Route::get(
+    '/academic/teachings',
+    [TeachingController::class, 'index'],
+)->name('academic.teachings.index');
     });
 
     /*

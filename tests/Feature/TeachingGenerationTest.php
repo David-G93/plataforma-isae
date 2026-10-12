@@ -12,7 +12,6 @@ use App\Models\Subject;
 use App\Models\Teaching;
 use App\Services\GenerateTeachingsFromStudyPlan;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use RuntimeException;
 
 uses(RefreshDatabase::class);
 
@@ -247,8 +246,8 @@ test('generation fails when course has no study plan', function () {
             $context['division'],
         ),
     )->toThrow(
-        RuntimeException::class,
-        'El curso no tiene un plan de estudio asignado.',
+        \RuntimeException::class,
+        'El curso 3° Año no tiene un plan de estudio asignado.',
     );
 });
 
@@ -272,7 +271,7 @@ test('generation fails when study plan belongs to another level', function () {
             $context['division']->fresh(),
         ),
     )->toThrow(
-        RuntimeException::class,
+        \RuntimeException::class,
         'El plan de estudio no corresponde al nivel del curso.',
     );
 });
