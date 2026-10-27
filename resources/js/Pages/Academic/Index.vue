@@ -604,7 +604,8 @@ const submitStudyPlanSubject = () => {
 
             <!-- CICLOS -->
             <section
-                class="rounded-2xl border border-slate-200 bg-white shadow-sm"
+                id="academic-years"
+                class="scroll-mt-24 rounded-2xl border border-slate-200 bg-white shadow-sm"
             >
                 <div
                     class="flex flex-col gap-4 border-b border-slate-100 px-6 py-5 sm:flex-row sm:items-center sm:justify-between"
@@ -1022,7 +1023,8 @@ const submitStudyPlanSubject = () => {
 
             <!-- CURSOS -->
             <section
-                class="rounded-2xl border border-slate-200 bg-white shadow-sm"
+                id="courses"
+                class="scroll-mt-24 rounded-2xl border border-slate-200 bg-white shadow-sm"
             >
                 <div
                     class="flex flex-col gap-4 border-b border-slate-100 px-6 py-5 sm:flex-row sm:items-center sm:justify-between"
@@ -1557,7 +1559,8 @@ const submitStudyPlanSubject = () => {
 
             <!-- PLANES -->
             <section
-                class="rounded-2xl border border-slate-200 bg-white shadow-sm"
+                id="study-plans"
+                class="scroll-mt-24 rounded-2xl border border-slate-200 bg-white shadow-sm"
             >
                 <div
                     class="border-b border-slate-100 px-6 py-5"
@@ -1654,8 +1657,9 @@ const submitStudyPlanSubject = () => {
             </section>
 
             <section
-    class="grid gap-6 xl:grid-cols-[0.85fr_1.15fr]"
->
+                id="subjects"
+                class="scroll-mt-24 grid gap-6 xl:grid-cols-[0.85fr_1.15fr]"
+            >
     <!-- MATERIAS -->
     <div
         class="rounded-2xl border border-slate-200 bg-white shadow-sm"

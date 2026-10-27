@@ -2,28 +2,42 @@
 
 namespace Database\Seeders;
 
+use App\Models\AcademicYear;
+use App\Models\Course;
 use App\Models\Grade;
+use App\Models\Level;
 use App\Models\StudyPlan;
 use App\Models\StudyPlanSubject;
 use App\Models\Subject;
 use Illuminate\Database\Seeder;
-use App\Models\AcademicYear;
-use App\Models\Course;
 use RuntimeException;
 
 class PrimaryStudyPlanSeeder extends Seeder
 {
     public function run(): void
     {
-        $studyPlan = StudyPlan::query()
-            ->where('code', 'plan-primario')
+        $level = Level::query()
+            ->where('code', 'primario')
             ->first();
 
-        if (! $studyPlan) {
+        if (! $level) {
             throw new RuntimeException(
-                'No existe el Plan Primario con código plan-primario.',
+                'No existe el Nivel Primario.',
             );
         }
+
+        $studyPlan = StudyPlan::query()->updateOrCreate(
+            [
+                'code' => 'plan-primario',
+            ],
+            [
+                'level_id' => $level->id,
+                'name' => 'Plan Primario',
+                'effective_from_year' => 2026,
+                'effective_to_year' => null,
+                'is_active' => true,
+            ],
+        );
 
         $subjectCatalog = [
             'cc-educacion-para-la-vida' => [
@@ -296,26 +310,27 @@ class PrimaryStudyPlanSeeder extends Seeder
                     ],
                 );
             }
-            $academicYear = AcademicYear::query()
-    ->where('year', 2026)
-    ->first();
-
-if (! $academicYear) {
-    throw new RuntimeException(
-        'No existe el ciclo lectivo 2026.',
-    );
-}
-
-$primaryGradeIds = Grade::query()
-    ->where('level_id', $studyPlan->level_id)
-    ->pluck('id');
-
-Course::query()
-    ->where('academic_year_id', $academicYear->id)
-    ->whereIn('grade_id', $primaryGradeIds)
-    ->update([
-        'study_plan_id' => $studyPlan->id,
-    ]);
         }
+
+        $academicYear = AcademicYear::query()
+            ->where('year', 2026)
+            ->first();
+
+        if (! $academicYear) {
+            throw new RuntimeException(
+                'No existe el ciclo lectivo 2026.',
+            );
+        }
+
+        $primaryGradeIds = Grade::query()
+            ->where('level_id', $studyPlan->level_id)
+            ->pluck('id');
+
+        Course::query()
+            ->where('academic_year_id', $academicYear->id)
+            ->whereIn('grade_id', $primaryGradeIds)
+            ->update([
+                'study_plan_id' => $studyPlan->id,
+            ]);
     }
 }

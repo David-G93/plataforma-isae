@@ -37,4 +37,9 @@ class AcademicYear extends Model
     {
         return $this->hasMany(StudentEnrollment::class);
     }
+
+    public function schoolPeriods(): HasMany
+    {
+        return $this->hasMany(SchoolPeriod::class)->orderBy('order');
+    }
 }

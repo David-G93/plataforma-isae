@@ -9,10 +9,14 @@ import {
     ClipboardCheck,
     GraduationCap,
     Home,
+    Layers3,
+    LibraryBig,
     LogOut,
     Menu,
     MessageSquare,
+    School,
     Settings,
+    ShieldAlert,
     Users,
     X,
 } from '@lucide/vue';
@@ -26,6 +30,7 @@ const page = usePage();
 
 const sidebarOpen = ref(false);
 const userMenuOpen = ref(false);
+const configurationOpen = ref(Boolean(route().current('academic.*')));
 
 const user = computed(() => page.props.auth?.user as any);
 
@@ -82,6 +87,72 @@ const can = (permission?: string) => {
     return permissions.value.includes(permission);
 };
 
+const academicSummary = computed(() => {
+    return (
+        (page.props.academicSummary as {
+            academic_years?: number;
+            subjects?: number;
+            study_plans?: number;
+            courses?: number;
+            divisions?: number;
+            teachings?: number;
+            quality_issues?: number;
+        } | null) ?? {}
+    );
+});
+
+const configurationItems = computed(() => [
+    {
+        label: 'Ciclos lectivos',
+        href: `${route('academic.index')}#academic-years`,
+        icon: CalendarDays,
+        count: academicSummary.value.academic_years ?? 0,
+        routePattern: null,
+    },
+    {
+        label: 'Materias',
+        href: `${route('academic.index')}#subjects`,
+        icon: BookOpen,
+        count: academicSummary.value.subjects ?? 0,
+        routePattern: null,
+    },
+    {
+        label: 'Planes de estudio',
+        href: `${route('academic.index')}#study-plans`,
+        icon: LibraryBig,
+        count: academicSummary.value.study_plans ?? 0,
+        routePattern: null,
+    },
+    {
+        label: 'Cursos',
+        href: `${route('academic.index')}#courses`,
+        icon: School,
+        count: academicSummary.value.courses ?? 0,
+        routePattern: null,
+    },
+    {
+        label: 'Divisiones',
+        href: route('academic.divisions.manage'),
+        icon: Layers3,
+        count: academicSummary.value.divisions ?? 0,
+        routePattern: 'academic.divisions.manage',
+    },
+    {
+        label: 'Controles de calidad',
+        href: route('academic.quality.index'),
+        icon: ShieldAlert,
+        count: academicSummary.value.quality_issues ?? 0,
+        routePattern: 'academic.quality.*',
+    },
+    {
+        label: 'Cursadas',
+        href: route('academic.teachings.index'),
+        icon: GraduationCap,
+        count: academicSummary.value.teachings ?? 0,
+        routePattern: 'academic.teachings.*',
+    },
+]);
+
 const allMenuItems = [
     {
         label: 'Inicio',
@@ -99,29 +170,15 @@ const allMenuItems = [
         routePattern: 'people.*',
         available: true,
     },
-{
-    label: 'Académico',
-    href: route('academic.index'),
-    icon: BookOpen,
-    permission: 'academic.view',
-    routePattern: 'academic.index',
-    available: true,
-},
-{
-    label: 'Dictados',
-    href: route('academic.teachings.index'),
-    icon: GraduationCap,
-    permission: 'academic.view',
-    routePattern: 'academic.teachings.*',
-    available: true,
-},
     {
         label: 'Asistencia',
-        href: '#',
+        href: roles.value.includes('preceptor')
+            ? route('attendance.official.index')
+            : route('attendance.teachings.index'),
         icon: ClipboardCheck,
         permission: 'attendance.view',
-        routePattern: null,
-        available: false,
+        routePattern: 'attendance.*',
+        available: true,
     },
     {
         label: 'Calificaciones',
@@ -162,6 +219,17 @@ const menuItems = computed(() => {
         return can(item.permission ?? undefined);
     });
 });
+
+const topMenuItems = computed(() =>
+    menuItems.value.filter((item) => ['Inicio', 'Personas'].includes(item.label)),
+);
+
+const futureMenuItems = computed(() =>
+    menuItems.value.filter((item) => !['Inicio', 'Personas'].includes(item.label)),
+);
+
+const canViewAcademic = computed(() => can('academic.view'));
+const isConfigurationCurrent = computed(() => Boolean(route().current('academic.*')));
 
 const logout = () => {
     router.post(route('logout'));
@@ -237,16 +305,14 @@ const isCurrent = (pattern: string | null) => {
                 <div class="space-y-1">
                     <component
                         :is="item.available ? Link : 'div'"
-                        v-for="item in menuItems"
+                        v-for="item in topMenuItems"
                         :key="item.label"
                         :href="item.available ? item.href : undefined"
                         :class="[
                             'flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition',
                             isCurrent(item.routePattern)
                                 ? 'bg-cyan-400/15 text-cyan-200'
-                                : item.available
-                                  ? 'text-slate-300 hover:bg-white/5 hover:text-white'
-                                  : 'cursor-default text-slate-500',
+                                : 'text-slate-300 hover:bg-white/5 hover:text-white',
                         ]"
                     >
                         <component
@@ -254,17 +320,95 @@ const isCurrent = (pattern: string | null) => {
                             class="h-5 w-5 shrink-0"
                         />
 
-                        <span>
-                            {{ item.label }}
-                        </span>
-
-                        <span
-                            v-if="!item.available"
-                            class="ml-auto rounded-full bg-white/5 px-2 py-0.5 text-[10px] text-slate-500"
-                        >
-                            Próximamente
-                        </span>
+                        <span>{{ item.label }}</span>
                     </component>
+
+                    <div v-if="canViewAcademic" class="pt-1">
+                        <button
+                            type="button"
+                            :class="[
+                                'flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition',
+                                isConfigurationCurrent
+                                    ? 'bg-cyan-400/15 text-cyan-200'
+                                    : 'text-slate-300 hover:bg-white/5 hover:text-white',
+                            ]"
+                            @click="configurationOpen = !configurationOpen"
+                        >
+                            <Settings class="h-5 w-5 shrink-0" />
+
+                            <span>Configuración</span>
+
+                            <ChevronDown
+                                :class="[
+                                    'ml-auto h-4 w-4 transition-transform',
+                                    configurationOpen ? 'rotate-180' : '',
+                                ]"
+                            />
+                        </button>
+
+                        <div
+                            v-if="configurationOpen"
+                            class="ml-4 mt-1 space-y-1 border-l border-white/10 pl-3"
+                        >
+                            <Link
+                                v-for="item in configurationItems"
+                                :key="item.label"
+                                :href="item.href"
+                                :class="[
+                                    'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition',
+                                    isCurrent(item.routePattern)
+                                        ? 'bg-white/5 text-cyan-200'
+                                        : 'text-slate-400 hover:bg-white/5 hover:text-white',
+                                ]"
+                            >
+                                <component
+                                    :is="item.icon"
+                                    class="h-4 w-4 shrink-0"
+                                />
+
+                                <span class="min-w-0 flex-1 truncate">
+                                    {{ item.label }}
+                                </span>
+
+                                <span
+                                    class="min-w-7 rounded-full bg-white/5 px-2 py-0.5 text-center text-[10px] font-semibold text-slate-400"
+                                >
+                                    {{ item.count }}
+                                </span>
+                            </Link>
+                        </div>
+                    </div>
+
+                    <div class="pt-2">
+                        <component
+                            :is="item.available ? Link : 'div'"
+                            v-for="item in futureMenuItems"
+                            :key="item.label"
+                            :href="item.available ? item.href : undefined"
+                            :class="[
+                                'flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition',
+                                isCurrent(item.routePattern)
+                                    ? 'bg-cyan-400/15 text-cyan-200'
+                                    : item.available
+                                      ? 'text-slate-300 hover:bg-white/5 hover:text-white'
+                                      : 'cursor-default text-slate-500',
+                            ]"
+                        >
+                            <component
+                                :is="item.icon"
+                                class="h-5 w-5 shrink-0"
+                            />
+
+                            <span>{{ item.label }}</span>
+
+                            <span
+                                v-if="!item.available"
+                                class="ml-auto rounded-full bg-white/5 px-2 py-0.5 text-[10px] text-slate-500"
+                            >
+                                Próximamente
+                            </span>
+                        </component>
+                    </div>
                 </div>
             </nav>
 

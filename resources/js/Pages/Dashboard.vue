@@ -4,11 +4,11 @@ import { Head, Link, usePage } from '@inertiajs/vue3';
 import {
     ArrowRight,
     BarChart3,
-    BookOpen,
     CalendarDays,
     ClipboardCheck,
     GraduationCap,
     MessageSquare,
+    Settings,
     Users,
 } from '@lucide/vue';
 import { computed } from 'vue';
@@ -67,10 +67,10 @@ const allModules = [
         available: true,
     },
 {
-    title: 'Académico',
+    title: 'Configuración',
     description:
-        'Ciclos lectivos, cursos, divisiones, materias y matrículas.',
-    icon: BookOpen,
+        'Ciclos lectivos, materias, planes, cursos, divisiones y cursadas.',
+    icon: Settings,
     permission: 'academic.view',
     href: route('academic.index'),
     available: true,
@@ -81,8 +81,10 @@ const allModules = [
             'Registro y seguimiento de asistencia institucional.',
         icon: ClipboardCheck,
         permission: 'attendance.view',
-        href: '#',
-        available: false,
+        href: roles.value.includes('preceptor')
+            ? route('attendance.official.index')
+            : route('attendance.teachings.index'),
+        available: true,
     },
     {
         title: 'Calificaciones',

@@ -11,9 +11,7 @@ class TeacherProfile extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'person_id',
-    ];
+    protected $fillable = ['person_id'];
 
     public function person(): BelongsTo
     {
@@ -25,6 +23,14 @@ class TeacherProfile extends Model
         return $this->belongsToMany(
             Teaching::class,
             'teaching_teacher',
+        )->withTimestamps();
+    }
+
+    public function divisions(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Division::class,
+            'division_teacher',
         )->withTimestamps();
     }
 }

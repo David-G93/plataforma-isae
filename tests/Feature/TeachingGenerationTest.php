@@ -276,6 +276,58 @@ test('generation fails when study plan belongs to another level', function () {
     );
 });
 
+
+test('orphaned teachings are deactivated when plan subjects are recreated', function () {
+    $context = createTeachingGenerationContext();
+
+    $subject = Subject::factory()->create([
+        'name' => 'Matemática',
+        'code' => 'matematica-orphan-test',
+    ]);
+
+    $planSubject = StudyPlanSubject::factory()->create([
+        'study_plan_id' => $context['studyPlan']->id,
+        'grade_id' => $context['grade']->id,
+        'subject_id' => $subject->id,
+        'modality_id' => null,
+        'is_active' => true,
+    ]);
+
+    $generator = app(GenerateTeachingsFromStudyPlan::class);
+    $generator->handle($context['division']);
+
+    $oldTeaching = Teaching::query()
+        ->where('division_id', $context['division']->id)
+        ->where('study_plan_subject_id', $planSubject->id)
+        ->firstOrFail();
+
+    $planSubject->delete();
+
+    expect($oldTeaching->fresh()->study_plan_subject_id)
+        ->toBeNull();
+
+    $replacementPlanSubject = StudyPlanSubject::factory()->create([
+        'study_plan_id' => $context['studyPlan']->id,
+        'grade_id' => $context['grade']->id,
+        'subject_id' => $subject->id,
+        'modality_id' => null,
+        'is_active' => true,
+    ]);
+
+    $generator->handle($context['division']->fresh());
+
+    expect($oldTeaching->fresh()->is_active)
+        ->toBeFalse();
+
+    expect(
+        Teaching::query()
+            ->where('division_id', $context['division']->id)
+            ->where('study_plan_subject_id', $replacementPlanSubject->id)
+            ->where('is_active', true)
+            ->count(),
+    )->toBe(1);
+});
+
 function createTeachingGenerationContext(
     bool $attachStudyPlan = true,
 ): array {

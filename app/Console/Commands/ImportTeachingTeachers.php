@@ -61,7 +61,14 @@ class ImportTeachingTeachers extends Command
                         ->all();
 
                     $teaching = Teaching::query()
+                        ->with('division')
                         ->findOrFail($teachingId);
+
+                    // Un docente asignado a un dictado pasa también a formar parte
+                    // del plantel docente habilitado de esa división.
+                    $teaching->division
+                        ->teachers()
+                        ->syncWithoutDetaching($teacherIds);
 
                     if ($this->option('replace')) {
                         $teaching

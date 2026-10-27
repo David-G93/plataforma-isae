@@ -56,3 +56,15 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+## Datos ficticios 2026
+
+Para poblar un escenario completo de prueba con divisiones, estudiantes, responsables, modalidades, docentes, personal y cursadas:
+
+```bash
+php artisan db:seed --class=Demo2026Seeder
+```
+
+El seeder es idempotente y usa rangos de DNI reservados para datos ficticios (`91xxxxxx` estudiantes, `92xxxxxx` responsables, `93xxxxxx` docentes y `94xxxxxx` personal). Puede ejecutarse nuevamente sin duplicar sus registros.
+
+El escenario crea 51 estudiantes distribuidos en las 12 divisiones 2026, un responsable principal por estudiante, divide 2° a 5° de Secundaria entre Ciencias Naturales e Informática, vincula docentes y personal a las divisiones, genera las 181 cursadas y asigna al menos un docente a cada una. Algunas cursadas tienen dos docentes para validar co-docencia.

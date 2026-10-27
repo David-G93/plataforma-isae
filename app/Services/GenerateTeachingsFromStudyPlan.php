@@ -62,22 +62,23 @@ class GenerateTeachingsFromStudyPlan
              * Si el plan cambió y había dictados anteriores que
              * ya no corresponden, no los borramos: los desactivamos.
              */
-            Teaching::query()
-                ->where('division_id', $division->id)
-                ->when(
-                    $validStudyPlanSubjectIds->isNotEmpty(),
-                    fn ($query) => $query->whereNotIn(
-                        'study_plan_subject_id',
-                        $validStudyPlanSubjectIds,
-                    ),
-                )
-                ->when(
-                    $validStudyPlanSubjectIds->isEmpty(),
-                    fn ($query) => $query,
-                )
-                ->update([
-                    'is_active' => false,
-                ]);
+            $obsoleteTeachings = Teaching::query()
+                ->where('division_id', $division->id);
+
+            if ($validStudyPlanSubjectIds->isNotEmpty()) {
+                $obsoleteTeachings->where(function ($query) use ($validStudyPlanSubjectIds) {
+                    $query
+                        ->whereNull('study_plan_subject_id')
+                        ->orWhereNotIn(
+                            'study_plan_subject_id',
+                            $validStudyPlanSubjectIds,
+                        );
+                });
+            }
+
+            $obsoleteTeachings->update([
+                'is_active' => false,
+            ]);
 
             return $planSubjects
                 ->map(function ($planSubject) use ($division) {

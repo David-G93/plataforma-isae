@@ -1,12 +1,16 @@
 <?php
 
 use App\Http\Controllers\AcademicController;
+use App\Http\Controllers\AcademicQualityController;
 use App\Http\Controllers\GuardianStudentController;
+use App\Http\Controllers\DivisionManagementController;
+use App\Http\Controllers\OfficialAttendanceController;
 use App\Http\Controllers\PersonController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 use App\Http\Controllers\TeachingController;
+use App\Http\Controllers\TeachingAttendanceController;
+use Inertia\Inertia;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -122,15 +126,20 @@ Route::middleware('auth')->group(function () {
             [AcademicController::class, 'storeStudyPlanSubject'],
         )->name('academic.study-plan-subjects.store');
 
-        Route::post(
-    '/academic/teachings/generate',
-    [TeachingController::class, 'generate'],
-)->name('academic.teachings.generate');
+        Route::put(
+            '/academic/divisions/{division}/composition',
+            [DivisionManagementController::class, 'update'],
+        )->name('academic.divisions.composition.update');
 
-Route::put(
-    '/academic/teachings/{teaching}/teachers',
-    [TeachingController::class, 'updateTeachers'],
-)->name('academic.teachings.teachers.update');
+        Route::post(
+            '/academic/teachings/generate',
+            [TeachingController::class, 'generate'],
+        )->name('academic.teachings.generate');
+
+        Route::put(
+            '/academic/teachings/{teaching}/teachers',
+            [TeachingController::class, 'updateTeachers'],
+        )->name('academic.teachings.teachers.update');
     });
 
     /*
@@ -146,9 +155,54 @@ Route::put(
         )->name('academic.index');
 
         Route::get(
-    '/academic/teachings',
-    [TeachingController::class, 'index'],
-)->name('academic.teachings.index');
+            '/academic/divisions/manage',
+            [DivisionManagementController::class, 'index'],
+        )->name('academic.divisions.manage');
+
+        Route::get(
+            '/academic/teachings',
+            [TeachingController::class, 'index'],
+        )->name('academic.teachings.index');
+
+        Route::get(
+            '/academic/quality',
+            [AcademicQualityController::class, 'index'],
+        )->name('academic.quality.index');
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Asistencia
+    |--------------------------------------------------------------------------
+    */
+
+    Route::middleware('permission:attendance.view')->group(function () {
+        Route::get(
+            '/attendance/teachings',
+            [TeachingAttendanceController::class, 'index'],
+        )->name('attendance.teachings.index');
+
+        Route::get(
+            '/attendance/teachings/{teaching}',
+            [TeachingAttendanceController::class, 'show'],
+        )->name('attendance.teachings.show');
+
+        Route::get(
+            '/attendance/official',
+            [OfficialAttendanceController::class, 'index'],
+        )->name('attendance.official.index');
+    });
+
+    Route::middleware('permission:attendance.manage')->group(function () {
+        Route::put(
+            '/attendance/teachings/{teaching}',
+            [TeachingAttendanceController::class, 'update'],
+        )->name('attendance.teachings.update');
+
+        Route::put(
+            '/attendance/official/{division}/{period}',
+            [OfficialAttendanceController::class, 'update'],
+        )->name('attendance.official.update');
     });
 
     /*

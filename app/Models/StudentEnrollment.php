@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class StudentEnrollment extends Model
 {
@@ -47,5 +48,15 @@ class StudentEnrollment extends Model
     public function modality(): BelongsTo
     {
         return $this->belongsTo(Modality::class);
+    }
+
+    public function teachingAttendances(): HasMany
+    {
+        return $this->hasMany(TeachingAttendance::class);
+    }
+
+    public function officialPeriodAttendances(): HasMany
+    {
+        return $this->hasMany(OfficialPeriodAttendance::class);
     }
 }
